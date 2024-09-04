@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .tabs {
+            display: flex;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background-color: #fff;
+            border-bottom: none;
+        }
+
+        .task-card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            /* Added to position the buttons */
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .task-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .task-detail {
+            display: flex;
+            align-items: center;
+        }
+
+        #error-message {
+            color: red;
+            font-weight: bold;
+        }
+
+        .task-buttons {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .accept {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .reject {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn:hover {
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Task Scheduler</h1>
+    <div class="tabs">
+        <div class="tab active">All Tasks</div>
+        <div class="tab">Upcoming</div>
+        <div class="tab">Completed</div>
+    </div>
+    <div id="taskList"></div>
+    <div id="error-message"></div>
+    <input type="hidden" name="taskname" id="taskname">
+    <input type="hidden" name="email" id="email">
+   
+    <script>
+        const taskList = document.getElementById('taskList');
+        const errorMessage = document.getElementById('error-message');
+
+        function createTaskCard(data) {
+            const task = data.task;
+            const project = data.project;
+
+            // Calculate task duration
+            const taskStartTime = new Date(task.taskStartTime);
+            const taskEndTime = new Date(task.taskEndTime);
+            const durationInDays = Math.round((taskEndTime - taskStartTime) / (1000 * 60 * 60 * 24));
+            const taskdepartment = task.taskdepartment;
+            document.getElementById("email").value=task.ProjectDepartmentEmail;
+            document.getElementById("taskname").value=task.taskName;
+            // Format project dates
+            const projectStartDate = new Date(project.start_date).toLocaleDateString();
+            const projectEndDate = new Date(project.end_date).toLocaleDateString();
+            const taskStartDate = taskStartTime.toLocaleDateString();
+            const taskEndDate = taskEndTime.toLocaleDateString();
+
+            return `
+                <div class="task-card" data-task-id="${task._id}" data-project-id="${project._id}" data-project-end-date="${project.end_date}">
+                    <div class="task-title">${task.taskName}</div>
+   
+
+                   
+                    <div class="task-details">
+                        <div class="task-detail">
+                             <p><strong>Schedule Date:</strong> ${taskStartDate} - ${taskEndDate}</p>
+                        </div>
+                        <div class="task-detail">
+                            <p><strong>Duration:</strong> ${durationInDays} days</p>
+                        </div>
+                        <div class="task-detail">
+                            <p><strong>Project Duration:</strong>${projectStartDate} - ${projectEndDate}</p>
+                        </div>
+                        <div class="task-detail">
+                            <p><strong>Department:</strong> ${project.department || 'N/A'}</p>
+                        </div>
+                        <div class="task-detail">
+                            <p><strong>Schedule Department:</strong> ${taskdepartment || 'N/A'}</p>
+                        </div>
+                        <div class="task-detail">
+                            <p><strong>Address:</strong> ${project.address || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="task-detail" style="margin-top: 10px;">
+                        <p><strong>Schedule Description:</strong> ${task.taskDescription || 'No description available.'}</p>
+                    </div>
+                    
+                    <div class="task-buttons">
+                         <button class="btn accept" id="sendEmailBtn" onclick="handleAccept('${task._id}', '${project._id}', '${project.end_date}', ${durationInDays}, '${task.taskStartTime}', '${task.taskEndTime}','${task.taskdepartment}','${project.department}')">Accept</button>
+                        <button class="btn reject">Reject</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleAccept(taskId, projectId, projectEndDate, durationInDays, taskStartDate, taskEndDate,taskDepartment,projectDepartment) {
+            // console.log('Inputs:', { taskId, projectId, projectEndDate, durationInDays, taskStartDate, taskEndDate ,taskDepartment,projectDepartment});
+
+            // Convert strings to Date objects
+            const projectEndDateObj = new Date(projectEndDate);
+            const taskEndDateObj = new Date(taskEndDate);
+
+            // console.log('Date objects:', { projectEndDateObj, taskEndDateObj });
+
+            if (isNaN(projectEndDateObj.getTime()) || isNaN(taskEndDateObj.getTime())) {
+                console.error('Invalid date input:', { projectEndDate, taskEndDate });
+                alert('Invalid date input. Please check the date formats.');
+                return;
+            }
+
+            // Calculate the new end date by adding durationInDays to projectEndDate
+            const newEndDate = new Date(projectEndDateObj.setDate(projectEndDateObj.getDate() + parseInt(durationInDays)));
+            const newEndDateString = newEndDate.toISOString().split('T')[0]; // Format to YYYY-MM-DD
+
+            // Update project start date to taskEndDate
+            const taskEndDateFormatted = taskEndDateObj.toISOString().split('T')[0]; // Format to YYYY-MM-DD
+
+            console.log('Formatted dates:', { newEndDateString, taskEndDateFormatted });
+            const combinedDepartments = `${taskDepartment}, ${projectDepartment}`.trim();
+            console.log('Combined departments:', combinedDepartments);
+            fetch(`/updateProject/${projectId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    start_date: taskEndDateFormatted,
+                    end_date: newEndDateString,
+                    department:combinedDepartments,
+                    schedule: true
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert('Project updated successfully!');
+                        window.location.reload(); // Refresh the page to reflect changes
+                    } else {
+                        alert('Failed to update the project.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating project:', error);
+                    alert('Error updating project. Please try again later.');
+                });
+                fetch('/sendemail', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: `${document.getElementById("taskname").value}`,
+                        email: `${document.getElementById("email").value}`,
+                        message: `Dear ${document.getElementById("taskname").value}, Great news! Your project extension has been granted. Let's make the most of this opportunity by exploring our platform's innovative tools, including geo-tracking, project management, and performance monitoring. `
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Email sent successfully');
+                    } else {
+                        console.error('Error sending email');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending email:', error);
+               });
+        }
+
+        fetch('/SchedulingData')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.matchedData && data.matchedData.length > 0) {
+                    taskList.innerHTML = data.matchedData.map(createTaskCard).join('');
+                } else {
+                    taskList.innerHTML = '<p>No matching projects or tasks found.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching tasks:', error);
+                taskList.innerHTML = '<p>No matching projects or tasks found.</p>';
+                
+            });
+    </script>
+    
+</body>
+
+</html>

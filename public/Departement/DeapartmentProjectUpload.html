@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Upload Form</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            flex: 1 1 calc(33.333% - 20px);
+            min-width: 250px;
+            margin-bottom: 20px;
+        }
+        .form-group.full-width {
+            flex-basis: 100%;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .file-uploads {
+            display: flex;
+            gap: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+            font-size: 16px;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+            font-size: 16px;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+            text-align: center;
+        }
+        .file-input-label:hover {
+            background-color: #2980b9;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-size-info {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .file-upload-container {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    <script>
+        function ImageFile(input) {
+            const file = input.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("File size exceeds 2MB limit. Please choose a smaller file.");
+                    input.value = "";
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const dataURL = e.target.result;
+                    document.getElementById("imageInput").value = dataURL;
+                    console.log("Image File:", dataURL);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        function handleFile(input) {
+            const file = input.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("File size exceeds 2MB limit. Please choose a smaller file.");
+                    input.value = "";
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const dataURL = e.target.result;
+                    document.getElementById("uploadPath").value = dataURL;
+                    console.log("Upload File:", dataURL);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+  
+        function addDateTime() {
+            const dateTimeField = document.getElementById('datetime');
+            if (dateTimeField) {
+                dateTimeField.value = new Date().toISOString();
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>Project Upload Form</h2>
+    <form action="/submitForm" method="post">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" required>
+        </div>
+
+        <div class="form-group">
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" required>
+        </div>
+
+        <div class="form-group">
+            <label for="region">Region:</label>
+            <input type="text" id="region" name="region" required>
+        </div>
+        
+        <!-- <div class="form-group">
+            <label for="department">Department:</label>
+            <input type="text" id="department" name="department" required>
+        </div> -->
+
+        <div class="form-group full-width">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+        </div>
+
+        <div class="form-actions">
+            <div class="file-uploads">
+                <div class="file-upload-container">
+                    <label for="upload_file" class="file-input-label">Upload File</label>
+                    <input type="file" id="upload_file" class="file-input" accept=".pdf,.doc,.docx,image/jpeg,image/png" onchange="handleFile(this)">
+                    <div class="file-size-info">File size should be less than 2MB</div>
+                </div>
+
+                <div class="file-upload-container">
+                    <label for="image_file" class="file-input-label">Image File</label>
+                    <input type="file" id="image_file" class="file-input" accept=".pdf,.doc,.docx,image/jpeg,image/png" onchange="ImageFile(this)">
+                    <div class="file-size-info">File size should be less than 2MB</div>
+                </div>
+            </div>
+
+            <input type="submit" value="Submit" onclick="addDateTime()">
+        </div>
+
+        <input type="hidden" name="uploadPath" id="uploadPath">
+        <input type="hidden" name="imageInput" id="imageInput">
+        <input type="hidden" name="ProjectId" id="ProjectId">
+        <input type="hidden" id="datetime" name="datetime">
+    </form>
+    <script>
+        function generateUniqueId() {
+            const randomNumber = Math.random().toString(36).substr(2, 9);
+            const timestamp = Date.now().toString(36);
+            return timestamp + randomNumber;
+        }
+        document.getElementById('ProjectId').value = generateUniqueId();
+    </script>
+</body>
+</html>

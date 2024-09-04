@@ -1,0 +1,124 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <title>City Location Map</title>
+   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        #map { width: 100%; height: 500px; position: relative; }
+        #image-popup {
+            position: absolute;
+            display: none;
+            background: rgb(209, 206, 206);
+            /* border: 1px solid #ccc;
+            padding: 10px; */
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        #image-popup img {
+            max-width: 300px;
+            width:120px;
+            height:120px
+            
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="image-popup"></div>
+
+    <script>
+        async function getCitiesFromProjects() {
+            try {
+                const response = await fetch('/projects');
+                const projects = await response.json();
+                if (projects.length > 0) {
+                    return projects.map(project => ({ city: project.city, image: project.image_upload })); // Adjust according to your project structure
+                } else {
+                    throw new Error("No projects found");
+                }
+            } catch (error) {
+                console.error("Error fetching cities:", error);
+                return [];
+            }
+        }
+        
+        async function getCityCoordinates(city) {
+            try {
+                const response = await fetch(`/getCityCoordinates?city=${encodeURIComponent(city)}`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error(`Error fetching coordinates for city ${city}:`, error);
+                return {};
+            }
+        }
+        
+        function loadMapScenario() {
+            getCitiesFromProjects().then(cities => {
+                if (cities.length === 0) {
+                    console.error("No cities to display on the map");
+                    return;
+                }
+                
+                const map = new Microsoft.Maps.Map('#map', {
+                    center: new Microsoft.Maps.Location(0, 0),
+                    zoom: 2
+                });
+
+                const imagePopup = document.getElementById('image-popup');
+                
+                const locationPromises = cities.map(city => getCityCoordinates(city.city));
+                
+                Promise.all(locationPromises).then(coordinatesList => {
+                    coordinatesList.forEach((coordinates, index) => {
+                        if (coordinates.latitude && coordinates.longitude) {
+                            const location = new Microsoft.Maps.Location(coordinates.latitude, coordinates.longitude);
+                            const pushpin = new Microsoft.Maps.Pushpin(location, { title: cities[index].city });
+                            map.entities.push(pushpin);
+                            
+                            Microsoft.Maps.Events.addHandler(pushpin, 'mouseover', function (e) {
+                                if (e.target instanceof Microsoft.Maps.Pushpin) {
+                                    imagePopup.style.display = 'block';
+                                    const point = map.tryLocationToPixel(location, Microsoft.Maps.PixelReference.control);
+                                    imagePopup.style.left = `${point.x}px`;
+                                    imagePopup.style.top = `${point.y}px`;
+                                    imagePopup.innerHTML = `<img src="${cities[index].image}" alt="City Image">`;
+                                }
+                            });
+                            
+                            Microsoft.Maps.Events.addHandler(pushpin, 'mouseout', function () {
+                                imagePopup.style.display = 'none';
+                            });
+                            
+                            if (index === 0) {
+                                map.setView({ bounds: Microsoft.Maps.LocationRect.fromCorners(location, location) });
+                            } else {
+                                const bounds = map.getBounds();
+                                bounds.extend(location);
+                                map.setView({ bounds: bounds });
+                            }
+                        } else {
+                            console.error(`Invalid coordinates for city ${cities[index].city}`);
+                        }
+                    });
+                }).catch(error => {
+                    console.error("Error fetching coordinates:", error);
+                });
+            }).catch(error => {
+                console.error("Error fetching cities:", error);
+            });
+        }
+
+        window.onload = loadMapScenario;
+    </script>
+    <script type="text/javascript"
+    src="https://www.bing.com/api/maps/mapcontrol?key=ArSGwElpgs65UXUwCnZ4ibhLzkmxuScTxz0rCq_kgJy35pa2tSq229GIMzMPVQ8P&callback=initMap"
+    async defer></script>
+</body>
+</html> -->

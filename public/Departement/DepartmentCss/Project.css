@@ -1,0 +1,103 @@
+/* Reset some default styling */
+body, h2, form {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Basic body styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    padding: 20px;
+}
+
+/* Centered container styling */
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Form container styling */
+form {
+    width: 90%; /* Set the width to 80% */
+    max-width: 1200px; /* Adjusted max-width for larger forms */
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Three columns for the form fields */
+    gap: 40px; /* Space between fields */
+    padding: 12px;
+}
+
+/* Styling for form fields */
+form > div {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Input and textarea styling */
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="file"],
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    margin-bottom: 20px; /* Space below each input field */
+}
+
+/* Ensure file inputs appear similar to other inputs */
+input[type="file"] {
+    padding: 0;
+    border: 1px solid #ccc;
+    background: #fff;
+    font-size: 16px;
+}
+
+textarea {
+    height: 100px;
+    resize: vertical; /* Allows vertical resizing only */
+}
+
+/* Submit button styling */
+input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: block; /* Makes the button span the full width */
+    font-size: 18px;
+    margin: 20px 0; /* Space above and below the button */
+    cursor: pointer;
+    border-radius: 4px;
+    grid-column: span 3; /* Span across three columns for the button */
+}
+
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Add responsiveness */
+@media (max-width: 600px) {
+    form {
+        width: 95%;
+        grid-template-columns: 1fr; /* Stack fields vertically on smaller screens */
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="date"],
+    input[type="file"],
+    textarea {
+        width: calc(100% - 20px); /* Full width for smaller screens */
+    }
+}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbound Methodology</title>
+   <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #fffde7;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        color: white;
+        background-color: #4285f4;
+        padding: 20px;
+        margin: -20px -20px 20px -20px;
+    }
+
+    .flow-chart-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    #flow-chart {
+        display: flex;
+        /* justify-content: space-between; */
+        align-items: stretch;
+        width: 95%;
+        background-color: #fffde7;
+        padding: 20px;
+        /* border-radius: 10px; */
+        /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+    }
+
+    .flow-step {
+        text-align: center;
+        width: 18%;
+        padding: 10px;
+        color: white;
+        margin: 0 10px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        border-radius: 20px;
+    }
+
+    .flow-step::after {
+        content: '→';
+        position: absolute;
+        top: 50%;
+        right: -25px;
+        transform: translateY(-50%);
+        font-size: 24px;
+        color: #333;
+    }
+
+    .flow-step:last-child::after {
+        display: none;
+    }
+
+    .flow-step h3 {
+        margin: 5px 0;
+        font-size: 14px;
+    }
+
+    .stage {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #333;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    .tools {
+        font-size: 10px;
+        color: #333;
+        margin-top: 5px;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    .task-description {
+        font-size: 12px;
+        margin-top: 10px;
+        flex-grow: 1;
+        overflow-y: auto;
+        max-height: 100px;
+    }
+
+    .department {
+        font-size: 10px;
+        margin-top: 5px;
+        font-style: italic;
+    }
+
+    #strangers { background-color: #ff6b6b; }
+    #visitors { background-color: #4ecdc4; }
+    #leads { background-color: #45b7d1; }
+    #customers { background-color: #a367dc; }
+    #promoters { background-color: #ff6b6b; }
+
+   </style>
+</head>
+<body>
+    <h1>Inbound Methodology</h1>
+
+    <div class="flow-chart-container">
+        <div id="flow-chart">
+            <!-- Flow steps will be dynamically inserted here -->
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/WorkfetchTasks')
+                .then(response => response.json())
+                         
+                .then(data => {
+                    if (data.matchedData && data.matchedData.length > 0) {
+                        renderFlowChart(data.matchedData);
+                    } else {
+                        document.getElementById('flow-chart').innerHTML = '<p>No tasks available</p>';
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+        function renderFlowChart(tasks) {
+    const flowChartContainer = document.getElementById('flow-chart');
+    flowChartContainer.innerHTML = ''; // Clear any existing content
+
+    // Sort tasks by start_date and end_date in ascending order
+    tasks.sort((a, b) => {
+        const startDateA = new Date(a.start_date);
+        const startDateB = new Date(b.start_date);
+        const endDateA = new Date(a.end_date);
+        const endDateB = new Date(b.end_date);
+
+        // Compare start dates first
+        if (startDateA < startDateB) return -1;
+        if (startDateA > startDateB) return 1;
+
+        // If start dates are the same, compare end dates
+        if (endDateA < endDateB) return -1;
+        if (endDateA > endDateB) return 1;
+
+        // If both start and end dates are the same, return 0
+        return 0;
+    });
+
+    tasks.forEach((task, index) => {
+        const stageElement = document.createElement('div');
+        stageElement.className = 'flow-step';
+        stageElement.style.backgroundColor = getRandomColor(); // Assign a random color to each stage
+
+        let stageContent = `
+            <div class="stage">${task.name || `Stage ${index + 1}`}</div>
+            <h3><strong>Department: </strong>${task.department || 'Task'}</h3>
+        `;
+
+        if (task.description) {
+            stageContent += `<div class="task-description">${task.description}</div>`;
+        }
+
+        if (task.department) {
+            stageContent += `<div class="department">Duration: ${new Date(task.start_date).toLocaleDateString()} - ${new Date(task.end_date).toLocaleDateString()}</div>`;
+        }
+
+        stageElement.innerHTML = stageContent;
+        flowChartContainer.appendChild(stageElement);
+    });
+}
+
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    </script>
+</body>
+</html>

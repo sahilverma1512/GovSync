@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f7f7f7;
+            cursor: pointer;
+        }
+
+        th.sortable:hover {
+            background-color: #eaeaea;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .table-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .modal-content img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            grid-column: span 2;
+            height: 400px;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: #333;
+            grid-column: span 2;
+        }
+
+        .modal-content p {
+            margin: 0;
+            color: #666;
+        }
+
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Styles for the Schedule Task Modal */
+        .schedule-modal-content {
+            width: 40%;
+            padding: 20px;
+            background-color: #fff;
+            margin: 5% auto;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .schedule-modal-content input,
+        .schedule-modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .schedule-modal-content button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+            margin-top: 10px;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchProjects();
+
+            async function fetchProjects() {
+                try {
+                    const response = await fetch('/projects');
+                    const projects = await response.json();
+                    displayProjects(projects);
+                } catch (error) {
+                    console.error("Failed to fetch projects:", error);
+                }
+            }
+
+            function displayProjects(projects) {
+                const tableBody = document.getElementById('project-table-body');
+                tableBody.innerHTML = '';
+
+                projects.forEach((project, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${project.department || 'N/A'}</td>
+                        <td>${project.name}</td>
+                         <td>${new Date(project.start_date).toLocaleDateString()} - ${new Date(project.end_date).toLocaleDateString()}</td>
+                        <td>${project.description || 'N/A'}</td>
+                        <td>${project.address || 'N/A'}</td>
+                    `;
+                    row.addEventListener('click', () => {
+                        showModal(project._id);
+                    });
+                    tableBody.appendChild(row);
+                });
+            }
+
+            async function showModal(projectId) {
+                try {
+                    const response = await fetch(`/projects/${projectId}`);
+                    const project = await response.json();
+                    displayModal(project);
+                } catch (error) {
+                    console.error("Failed to fetch project details:", error);
+                }
+            }
+
+            function displayModal(project) {
+                const modal = document.getElementById('projectModal');
+                const modalContent = modal.querySelector('.modal-content');
+
+                // Determine if the file is an image or a generic file
+                const getFileDisplay = (fileUrl) => {
+                    const isImage = fileUrl.match(/\.(jpeg|jpg|png|gif)$/);
+                    return `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            ${isImage ? `<img src="${fileUrl}" alt="File Image" style="max-width: 100px; height: auto; border-radius: 8px;box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;">` : `<span>File</span>`}
+                            <a href="${fileUrl}" download style="background-color: #007BFF; color: #fff; padding: 5px 10px; text-decoration: none; border-radius: 4px;box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;">Download</a>
+                        </div>
+                    `;
+                };
+
+                modalContent.innerHTML = `
+                    <span class="close">&times;</span>
+                    <h2>${project.name}</h2>
+                    ${project.image_upload ? `<img src="${project.image_upload}" alt="Project Image" style="max-width: 100%; height:400px; border-radius: 8px;">` : ''}
+                    <p><strong>Department:</strong> ${project.department}</p>
+                    <p><strong>Duration:</strong> ${new Date(project.start_date).toLocaleDateString()} - ${new Date(project.end_date).toLocaleDateString()}</p>
+                    <p><strong>Email:</strong> ${project.email}</p>
+                    <p><strong>Phone:</strong> ${project.phone_number}</p>
+                    <p><strong>Address:</strong> ${project.address}</p>
+                    <p><strong>City:</strong> ${project.city}</p>
+                    <p><strong>Region:</strong> ${project.region}</p>
+                    ${project.file_upload ? getFileDisplay(project.file_upload) : ''}
+                    <button id="SchduleButton" style="position: absolute; bottom: 10px; right: 60px; background-color: #FE5000; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;">Schedule</button>
+                    <button id="connectButton" style="position: absolute; bottom: 10px; right: 160px; background-color:#4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;">Connect</button>
+                `;
+
+                modal.style.display = "block";
+
+                modal.querySelector('.close').addEventListener('click', () => {
+                    modal.style.display = "none";
+                });
+
+                document.getElementById('SchduleButton').addEventListener('click', () => {
+                    modal.style.display = "none";
+                    showScheduleModal(project._id);
+                });
+                // public\Departement\DepartmentConnect.html
+                document.getElementById('connectButton').addEventListener('click', () => {
+                    window.location.href = "../Departement/DepartmentConnect.html";
+                });
+            }
+
+            // Show the Schedule Task Modal
+            function showScheduleModal(projectId) {
+                const scheduleModal = document.getElementById('scheduleModal');
+                const scheduleModalContent = scheduleModal.querySelector('.schedule-modal-content');
+
+                scheduleModalContent.innerHTML = `
+                    <span class="close">&times;</span>
+                    <h2>Schedule Task</h2>
+                    <form id="scheduleForm">
+                        <strong>Name</strong><input type="text" id="taskName" placeholder="Name" required>
+                       <strong>Departement</strong> <input type="text" id="taskdepartment" placeholder="Department" required>
+                       <strong>Description</strong> <textarea id="taskDescription" placeholder="Task Description" required></textarea>
+                       <strong>TaskStartTime</strong> <input type="date" id="taskStartTime" placeholder=" taskStartTime"required>
+                          <strong>TaskEndTime</strong><input type="date" id="taskEndTime" placeholder=" taskEndTime"required>
+                        <button type="submit">Schedule</button>
+                    </form>
+                `;
+
+                scheduleModal.style.display = "block";
+
+                scheduleModal.querySelector('.close').addEventListener('click', () => {
+                    scheduleModal.style.display = "none";
+                });
+
+                // Form submission logic
+                document.getElementById('scheduleForm').addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const taskName = document.getElementById('taskName').value;
+                    const taskdepartment = document.getElementById('taskdepartment').value;
+                    const taskDescription = document.getElementById('taskDescription').value;
+                    const taskStartTime = document.getElementById('taskStartTime').value;
+                    const taskEndTime = document.getElementById('taskEndTime').value;
+
+                    const taskData = {
+                        projectId,
+                        taskName,
+                        taskdepartment,
+                        taskDescription,
+                        taskStartTime,
+                        taskEndTime
+                    };
+
+                    try {
+                        const response = await fetch('/scheduleTask', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(taskData)
+                        });
+
+                        if (response.ok) {
+                            // Attempt to parse JSON response
+                            const responseData = await response.json();
+                            alert('Task scheduled successfully!');
+                            scheduleModal.style.display = "none";
+                            location.reload();
+                        } else {
+                            // Attempt to parse JSON response for error messages
+                            const errorData = await response.text();
+                            // alert(`Error: ${errorData}`);
+                        }
+                    } catch (error) {
+                        console.error("Failed to schedule task:", error);
+                        alert('Failed to schedule task. Please try again.');
+                    }
+                }); 
+            }
+            window.addEventListener('click', function (event) {
+                const projectModal = document.getElementById('projectModal');
+                const scheduleModal = document.getElementById('scheduleModal');
+
+                if (event.target === projectModal) {
+                    projectModal.style.display = "none";
+                }
+
+                if (event.target === scheduleModal) {
+                    scheduleModal.style.display = "none";
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="table-container">
+        <h1>Project Table</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sl. No.</th>
+                    <th>Department</th>
+                    <th>Project Name</th>
+                    <th>Duration</th>
+                    <th>Description</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody id="project-table-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Modal for Project Details -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <!-- Project details will be loaded dynamically here -->
+        </div>
+    </div>
+
+    <!-- Modal for Scheduling Task -->
+    <div id="scheduleModal" class="modal">
+        <div class="schedule-modal-content">
+            <!-- Schedule task form will be loaded dynamically here -->
+        </div>
+    </div>
+</body>
+
+</html>
